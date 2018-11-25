@@ -1,29 +1,35 @@
-import validator from 'validator';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import { tokenSecret } from '../config';
+const validator = require('validator');
+const jwt = require ('jsonwebtoken');
+const bcrypt = require ('bcrypt');
+const tokenSecret = require ('../config').tokenSecret;
+const payloadSecret = require('../config').payloadSecret;
+const expirationTime = require('../config').expirationTime;
 
-import User from '../models/user';
-import validate from '../validation/validator';
-import registerSchema from '../validation/schemas/registerSchema';
-import EmailService from './email_service';
+const User = require ('../models/user');
+const validate = require ('../validation/validator');
+const registerSchema = require('../validation/schemas/registerSchema');
+const EmailService = require('./email_service');
 
 let UserService = {
 
+    /*
+        Function to validate the body provided by the user
+    */
     validateBody: (userDetails) => {
-        console.log('user Detaild', userDetails);
         return validate.validateBody(userDetails, registerSchema)
         .then(() => {
             if(!validator.isEmail(userDetails.email)) {
-                throw { code: 400, message: 'Not a valid email address'}
+                throw { code: 400, message: 'Not a valid email address'};
             }
         })
     },
 
+    /*
+        Checks if the provided email address is already available
+    */
     isEmailAddressAvailable: (email) => {
         return User.findOne({'email': email})
             .then((users) => {
-                console.log('users are', users);
                if(!users) {
                    return false;
                } else {
@@ -32,6 +38,9 @@ let UserService = {
             })
     },
 
+    /*
+        Function to save user in the database
+    */
     saveUser: (userDetails) => {
         let newUser = new User();
         newUser.email = userDetails.email;
@@ -39,7 +48,6 @@ let UserService = {
         newUser.access_token = userDetails.token;
         return new Promise((resolve, reject) => {
             newUser.save((err, savedUser) => {
-                console.log('saved user is', savedUser);
                 if(err) {
                    reject(err);
                 } else {
@@ -49,18 +57,23 @@ let UserService = {
         })
     },
 
+    /*
+        Function to generate json web token
+    */
     generateToken: (user) => {
         const payload = {
             userEmail: user.email,
-            iss: 'squashApps',
-            iat: Date.now()
+            iss: payloadSecret,
+            iat: Date.now(),
+            expiresIn: expirationTime
         }
-        console.log('payload is', payload);
-
         user.token = jwt.sign(payload, tokenSecret);
         return user;
     },
 
+    /*
+        Function to login user
+    */
     loginUser: (userDetails) => {
         let email = userDetails.email;
         let password = userDetails.password;
@@ -74,7 +87,7 @@ let UserService = {
                             resolve(user)
                           }
                           else{
-                            reject(err)
+                            reject({'code':401,'message':'Password incorrect'})
                           }
                     })
                 }
@@ -83,6 +96,9 @@ let UserService = {
         
     },
 
+    /*
+        Async function for creating user
+    */
     createUser: async (userDetails) => {
         try{ 
                 await UserService.validateBody(userDetails);
@@ -93,11 +109,13 @@ let UserService = {
                 return savedUser;
         } 
         catch(err) {
-            console.log('error', err);
-            return err;
+            throw(err);
         }
     },
 
+    /*
+        Async function for logging the user in
+    */
     getUser: async (userDetails) => {
         try {
             await UserService.validateBody(userDetails);
@@ -105,7 +123,7 @@ let UserService = {
             return user;
         }
         catch(err) {
-            return err;
+            throw(err);
         }
     }
     

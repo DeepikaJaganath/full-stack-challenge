@@ -1,16 +1,9 @@
 'use strict';
 
-var _bcrypt = require('bcrypt');
+var bcrypt = require('bcrypt');
+var mongoose = require('mongoose');
 
-var _bcrypt2 = _interopRequireDefault(_bcrypt);
-
-var _mongoose = require('mongoose');
-
-var _mongoose2 = _interopRequireDefault(_mongoose);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var userSchema = new _mongoose2.default.Schema({
+var userSchema = new mongoose.Schema({
     email: {
         type: String,
         trim: true,
@@ -28,10 +21,11 @@ var userSchema = new _mongoose2.default.Schema({
     }
 });
 
+//Pre-hooks to hash password before saving the user
+
 userSchema.pre('save', function (next) {
     var user = this;
-    console.log('user is', user);
-    _bcrypt2.default.hash(user.password, 10, function (err, hash) {
+    bcrypt.hash(user.password, 10, function (err, hash) {
         if (err) {
             return next(err);
         }
@@ -40,4 +34,4 @@ userSchema.pre('save', function (next) {
     });
 });
 
-module.exports = _mongoose2.default.model("user", userSchema);
+module.exports = mongoose.model("user", userSchema);

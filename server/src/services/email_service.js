@@ -1,23 +1,26 @@
-import nodemailer from 'nodemailer';
-import smtpTransport from 'nodemailer-smtp-transport';
-import CONSTANT from '../constant';
+const nodemailer = require('nodemailer');
+const smtpTransport  = require('nodemailer-smtp-transport');
+const NOTIFICATION_URL = require('../constant').NOTIFICATION_URL;
+const config = require('../config');
 
 let EmailService = {
+
+    /*
+        Function to send Email to the user for account verification
+    */
     verifyAccount: (user) => {
-        console.log('verfication user is', user);
         let transport = nodemailer.createTransport(smtpTransport({
             service: "gmail",
             auth: {
-                user: 'dpkajaganathan@gmail.com',
-                pass: 'DPKA19csebe'
+                user: config.mailer.auth.user,
+                pass: config.mailer.auth.pass
             }
         }));
-
-        let URL = `http://${CONSTANT.NOTIFICATION_URL}/verify/${user.access_token}`
+        let URL = `${NOTIFICATION_URL}/verify/${user.access_token}`
 
         let mailOptions = {
             to: user.email,
-            from: 'dpkajaganathan@gmail.com',
+            from: config.mailer.auth.user,
             subject: 'Account Verification',
             html: `<p>You are receiving this because you (or someone) has registered for a new account.\n\n` +
                      `Please click on the following link to login\n\n</p>`+ 

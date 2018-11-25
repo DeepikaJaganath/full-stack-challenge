@@ -17,8 +17,7 @@ class SignupForm extends Component {
         e.preventDefault();
         this.props.form.validateFields((err, values) => {
           if (!err) {
-              values = {email: values.email, password: btoa(values.password)}
-              console.log('values are in handle', values);
+            values = {email: values.email, password: btoa(values.password)}
             this.props.submitForm(values);
           }
         });
@@ -35,7 +34,14 @@ class SignupForm extends Component {
     
       validateToNextPassword = (rule, value, callback) => {
         const form = this.props.form;
-        if (value && this.state.confirmDirty) {
+        let regex = new RegExp(/((?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%]).{6,20})/);
+        if(value && value.length < 6) {
+            callback('Password length must be of atleast 6 characters');
+        }
+        else if(value && !regex.test(value)) {
+            callback('Password must contain alphanumeric values');
+        }
+        else if (value && this.state.confirmDirty) {
           form.validateFields(['confirm'], { force: true });
         }
         callback();
@@ -46,8 +52,8 @@ class SignupForm extends Component {
 
         const formItemLayout = {
             labelCol: {
-              xs: { span: 5 },
-              sm: { span: 5 },
+              xs: { span: 8 },
+              sm: { span: 8 },
             },
             wrapperCol: {
               xs: { span: 12 },
@@ -77,7 +83,7 @@ class SignupForm extends Component {
                 >
                     {getFieldDecorator('password', {
                         rules: [{
-                        required: true, message: 'Please input your password!',
+                        required: true, message: 'Please input your password!'
                         }, {
                         validator: this.validateToNextPassword,
                         }],

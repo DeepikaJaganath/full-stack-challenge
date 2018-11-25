@@ -1,54 +1,67 @@
 'use strict';
 
-var _user = require('../models/user');
-
-var _user2 = _interopRequireDefault(_user);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var User = require('../models/user');
 
 var VerificationService = {
 
+    /*
+        Function to update the user account as verified
+    */
     setVerified: function setVerified(email) {
-        console.log('email', email);
-        return _user2.default.findOneAndUpdate({ email: email }, { isVerified: true }, { new: true }).lean().exec(function (err, result) {
-            if (err) {
-                throw { code: 500, message: 'Error updating user' };
-            }
-        });
-    },
-
-    isVerified: function isVerified(credentials) {
-        console.log('credentials are', credentials);
-        var email = credentials.email;
-        return _user2.default.findOne({ email: email }, function (err, user) {
-            if (err) {
-                throw { code: 500, message: 'Error finding user' };
-            } else {
-                console.log('user is', user);
-                if (user.isVerified === true) {
-                    return user.isVerified;
+        return new Promise(function (resolve, reject) {
+            return User.findOneAndUpdate({ email: email }, { isVerified: true }, { new: true }).lean().exec(function (err, result) {
+                if (err) {
+                    reject({ code: 500, message: 'Error updating user' });
                 } else {
-                    throw { code: 400, message: 'User is not authenticated' };
+                    resolve(result);
                 }
-            }
+            });
         });
     },
 
-    authenticateUser: function authenticateUser(email) {
+    /*
+        Function to check if user is register
+    */
+    isRegistered: function isRegistered(credentials) {
+        return new Promise(function (resolve, reject) {
+            var email = credentials.email;
+            return User.findOne({ email: email }, function (err, user) {
+                if (err) {
+                    reject({ 'code': 500, 'message': 'Error in finding user' });
+                } else {
+                    if (!user) {
+                        reject({ 'code': 400, 'message': 'User not found' });
+                    } else {
+                        resolve(user);
+                    }
+                }
+            });
+        });
+    },
 
-        try {
-            VerificationService.setVerified(email);
-        } catch (e) {
-            console.error(e);
+    isVerified: function isVerified(user) {
+        if (user.isVerified === true) {
+            return true;
+        } else {
+            return false;
         }
     },
 
-    checkAuthenticated: function checkAuthenticated(spec) {
+    authorizeUser: function authorizeUser(email) {
         try {
-            var isVerified = VerificationService.isVerified(spec);
-            return isVerified;
+            return VerificationService.setVerified(email);
         } catch (e) {
-            console.error(e);
+            throw e;
+        }
+    },
+
+    checkAuthenticated: async function checkAuthenticated(spec) {
+        try {
+            var registeredUser = await VerificationService.isRegistered(spec);
+            var isVerified = await VerificationService.isVerified(registeredUser);
+            return isVerified;
+        } catch (err) {
+            throw err;
         }
     }
 

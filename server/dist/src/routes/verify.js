@@ -1,34 +1,43 @@
 'use strict';
 
-var _jsonwebtoken = require('jsonwebtoken');
+var jwt = require('jsonwebtoken');
+var tokenSecret = require('../config').tokenSecret;
+var REDIRECT_URL = require('../constant').REDIRECT_URL;
+var VerificationService = require('../services/verification_service');
 
-var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
+var authorizeUser = function authorizeUser(decoded, res) {
+    VerificationService.authorizeUser(decoded.userEmail).then(function (user) {
+        res.redirect('' + REDIRECT_URL);
+    }).catch(function (err) {
+        res.status(err.code).send(err.message);
+    });
+};
 
-var _config = require('../config');
-
-var _constant = require('../constant');
-
-var _constant2 = _interopRequireDefault(_constant);
-
-var _verification_service = require('../services/verification_service');
-
-var _verification_service2 = _interopRequireDefault(_verification_service);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+/**
+ * @api {GET} Verify if user is authenticated and provide Authorization
+ * @apiName Authorize User
+ * @apiGroup Authorization
+ * 
+ * @apiParam {String} token, Users access token 
+ * 
+ * @apiSuccess
+ * Sends Email to the user
+ * 
+ * @apiFailure
+ * HTTP 403, Failed to authenticate token
+ */
 
 var verifyUser = async function verifyUser(req, res) {
     var token = req.params.token;
+    console.log('token is', token);
     if (token) {
-        _jsonwebtoken2.default.verify(token, _config.tokenSecret, async function (err, decoded) {
+        jwt.verify(token, tokenSecret, function (err, decoded) {
             if (err) {
                 return res.status(403).json({
                     message: 'Failed to authenticate token.'
                 });
             } else {
-                console.log('decoded email', decoded);
-                await _verification_service2.default.authenticateUser(decoded.userEmail);
-                console.log('THIS should print after authentication ****************', _constant2.default.REDIRECT_URL);
-                res.redirect('' + _constant2.default.REDIRECT_URL);
+                authorizeUser(decoded, res);
             }
         });
     } else {
@@ -38,14 +47,32 @@ var verifyUser = async function verifyUser(req, res) {
     }
 };
 
+/**
+ * @api {POST} Checks if user is Authenticated before logging in.
+ * @apiName Check Authentication
+ * 
+ * @apiParam {JSON} 
+ * {
+ *  "email": "dummyemail@examp.com",
+ *  "password" : "abcD1234@"
+ * } 
+ * 
+ * @apiSuccess
+ * Moves to Login API
+ * 
+ * @apiFailure
+ * User is unAuthorized
+ */
+
 var isAuthenticated = function isAuthenticated(req, res, next) {
     var spec = {
         email: req.body.email,
         password: req.body.password
     };
-    console.log('spec is', spec);
-    _verification_service2.default.checkAuthenticated(spec).then(function (isVerified) {
-        return next();
+    VerificationService.checkAuthenticated(spec).then(function (isVerified) {
+        return isVerified === true ? next() : res.status(401).send('User is unauthorized');
+    }).catch(function (err) {
+        res.status(err.code).send(err.message);
     });
 };
 

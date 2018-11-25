@@ -1,5 +1,5 @@
-import bcrypt from 'bcrypt';
-import mongoose from 'mongoose';
+const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
 
 let userSchema = new mongoose.Schema({
     email: {
@@ -19,9 +19,10 @@ let userSchema = new mongoose.Schema({
     }
 });
 
+//Pre-hooks to hash password before saving the user
+
 userSchema.pre('save',function(next){
     let user = this;
-    console.log('user is', user);
     bcrypt.hash(user.password, 10, function(err, hash){
       if(err){
         return next(err);

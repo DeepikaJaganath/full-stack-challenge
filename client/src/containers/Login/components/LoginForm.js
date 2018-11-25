@@ -12,7 +12,6 @@ class LoginForm extends Component {
         this.props.form.validateFields((err, values) => {
           if (!err) {
               values = {...values, password: btoa(values.password)}
-              console.log('values are', values);
             this.props.submitForm(values);
           }
         });
@@ -23,19 +22,20 @@ class LoginForm extends Component {
 
         const formItemLayout = {
             labelCol: {
-              xs: { span: 5 },
-              sm: { span: 5 },
+              xs: { span: 7 },
+              sm: { span: 7 },
             },
             wrapperCol: {
-              xs: { span: 12 },
-              sm: { span: 12 },
+              xs: { span: 15 },
+              sm: { span: 15 },
             },
           };
 
         return(
             <Form onSubmit={this.handleSubmit} className="login-form">
                 <FormItem
-                {...formItemLayout}>
+                {...formItemLayout}
+                label="E-mail">
                 {getFieldDecorator('email', {
                     rules: [{ required: true, message: 'Please input your username!' }],
                 })(
@@ -43,7 +43,8 @@ class LoginForm extends Component {
                 )}
                 </FormItem>
                 <FormItem
-                {...formItemLayout}>
+                {...formItemLayout}
+                label="Password">
                 {getFieldDecorator('password', {
                     rules: [{ required: true, message: 'Please input your Password!' }],
                 })(

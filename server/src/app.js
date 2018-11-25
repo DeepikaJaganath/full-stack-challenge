@@ -17,20 +17,11 @@ db.once("open", function(callback) {
     console.log("Connection Succeeded");
 });
 
+//Routes
 const apiRoutes = {
-    user  :  require('./routes/user'),
+    user    :  require('./routes/user'),
     verify  :  require('./routes/verify')
 }
-
-//Test handler
-app.get('/', (req,res) => {
-    res.send(
-        [{
-            serviceName: 'test',
-            isRunning: false
-        }]
-    )
-})
 
 app.post('/register' , apiRoutes.user.registerUser);
 app.get('/verify/:token', apiRoutes.verify.verifyUser);
