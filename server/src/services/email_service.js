@@ -16,7 +16,7 @@ let EmailService = {
                 pass: config.mailer.auth.pass
             }
         }));
-        let URL = `${NOTIFICATION_URL}/verify/${user.access_token}`
+        let URL = `${NOTIFICATION_URL}/verify/${user.token}`
 
         let mailOptions = {
             to: user.email,

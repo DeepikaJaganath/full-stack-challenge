@@ -1,5 +1,6 @@
-const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
+
+const CryptoService = require('../services/crypto_service');
 
 let userSchema = new mongoose.Schema({
     email: {
@@ -10,7 +11,10 @@ let userSchema = new mongoose.Schema({
     password: {
         type: String
     },
-    access_token: {
+    salt: {
+        type: String
+    },
+    token: {
         type: String
     },
     isVerified: {
@@ -23,13 +27,10 @@ let userSchema = new mongoose.Schema({
 
 userSchema.pre('save',function(next){
     let user = this;
-    bcrypt.hash(user.password, 10, function(err, hash){
-      if(err){
-        return next(err);
-      }
-      user.password = hash;
-      next();
-    })
+    let saltHash = CryptoService.saltHashPassword(user.password);
+    user.password = saltHash.passwordHash;
+    user.salt = saltHash.salt;
+    next();
   })
   
 module.exports = mongoose.model("user", userSchema)

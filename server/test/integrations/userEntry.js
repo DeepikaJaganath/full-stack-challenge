@@ -21,7 +21,7 @@ describe("Registering a new user", function() {
             .post('/register')
             .send(input)
             .end(function(err, res) {
-                token = res.body.access_token;
+                token = res.body.token;
                 expect(res.status).to.equal(200);
                 done();
             })

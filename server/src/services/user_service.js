@@ -9,6 +9,7 @@ const User = require ('../models/user');
 const validate = require ('../validation/validator');
 const registerSchema = require('../validation/schemas/registerSchema');
 const EmailService = require('./email_service');
+const CryptoService = require('./crypto_service');
 
 let UserService = {
 
@@ -42,10 +43,7 @@ let UserService = {
         Function to save user in the database
     */
     saveUser: (userDetails) => {
-        let newUser = new User();
-        newUser.email = userDetails.email;
-        newUser.password = userDetails.password;
-        newUser.access_token = userDetails.token;
+        let newUser = new User(userDetails);
         return new Promise((resolve, reject) => {
             newUser.save((err, savedUser) => {
                 if(err) {
@@ -78,22 +76,19 @@ let UserService = {
         let email = userDetails.email;
         let password = userDetails.password;
         return new Promise((resolve, reject) => {
-            User.findOne({email: email}, (err, user) => {
+            User.findOne({email: email}, async (err, user) => {
                 if(err) {
                     throw { code : 500, message : 'Error logging in user'}
                 } else {
-                    bcrypt.compare(password, user.password, (err, result) => {
-                        if(result === true){
-                            resolve(user)
-                          }
-                          else{
-                            reject({'code':401,'message':'Password incorrect'})
-                          }
-                    })
+                    let hashedPassword = await CryptoService.saltHashExistingPassword(password, user.salt);
+                    if(hashedPassword.passwordHash === user.password) {
+                        resolve(user);
+                    } else {
+                        reject({'code':401,'message':'Password incorrect'});
+                    }
                 }
             })
-        })
-        
+        })   
     },
 
     /*

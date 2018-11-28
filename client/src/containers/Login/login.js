@@ -10,15 +10,10 @@ import api from '../../api';
 
 
 class Login extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
+        state = {
             isLogged: false
         }
-        this.loginForm = this._loginForm.bind(this);
-    }
-
-    _loginForm(values) {
+    loginUser = (values) => {
         axios.post(`${api.url}/login`, values)
         .then((res) => {
             if(res.status === 200) {
@@ -34,7 +29,7 @@ class Login extends Component {
             <div>
                 <ToastContainer/>
                 <Card title = {<span className = "titleStyle">Login</span> } className = "loginFormContainer">
-                    <LoginForm submitForm = {this.loginForm}/>
+                    <LoginForm submitForm = {this.loginUser}/>
                 </Card>
                 {this.state.isLogged === true ? <ConfirmModal showModal = {this.state.isLogged}/>: null }
             </div>

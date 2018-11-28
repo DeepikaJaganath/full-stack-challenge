@@ -11,15 +11,11 @@ import api from '../../api';
 import './signup.css';
 
 class Signup extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
+        state = {
             showModal: false
         }
-        this.registerUser = this._registerUser.bind(this);
-    }
 
-    _registerUser(values) {
+    registerUser = (values) => {
         axios.post(`${api.url}/register`, values)
         .then((res) => {
             if(res.status === 200) {
